@@ -6813,11 +6813,11 @@
   )
 
   (module kicad-libraries:CE_5mm (layer Rückseite) (tedit 0) (tstamp 58AAA8D7)
-    (at 143.11 97.13)
-    (fp_text reference VAL (at 0 0) (layer B.SilkS) hide
+    (at 143.11 97.13 180)
+    (fp_text reference VAL (at 0 0 180) (layer B.SilkS) hide
       (effects (font (size 1.143 1.143) (thickness 0.1778)) (justify mirror))
     )
-    (fp_text value CE_5mm (at 0 0) (layer B.SilkS) hide
+    (fp_text value CE_5mm (at 0 0 180) (layer B.SilkS) hide
       (effects (font (size 1.143 1.143) (thickness 0.1778)) (justify mirror))
     )
     (fp_poly (pts (xy -0.55372 -1.67132) (xy -0.5715 -1.67386) (xy -0.57912 -1.6764) (xy -0.59436 -1.6764)
