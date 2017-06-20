@@ -490,8 +490,8 @@ Text GLabel 5450 2700 0    60   Input ~ 0
 Text Notes 5100 4050 0    39   ~ 0
 SPI Slave\nP1.1 : USIC0_CH1-DX2E : SEL\nP1.2 : USIC0_CH1-DX0B : MOSI\nP1.3 : USIC0_CH1-DX1A : CLK\nP1.6 : USIC0_CH1-DOUT0 : MISO
 Text Notes 5300 7250 0    39   ~ 0
-ASC\nP2.12 : USIC1_CH1.DOUT0\nP2.13 : USIC1_CH1.DX0D
-Text GLabel 5650 6850 0    60   Input ~ 0
+ASC\nP2.12 : USIC1_CH1.DOUT0\nP3.0 : USIC1_CH1.DX0E
+Text GLabel 3750 5700 0    60   Input ~ 0
 485-RX
 Text GLabel 5650 6650 0    60   Output ~ 0
 485-~RE
@@ -614,7 +614,6 @@ NoConn ~ 4000 4700
 NoConn ~ 4000 5000
 NoConn ~ 4000 5100
 NoConn ~ 4000 5200
-NoConn ~ 4050 5950
 NoConn ~ 3600 5950
 NoConn ~ 3200 5950
 Text Notes 2750 4200 0    39   ~ 0
@@ -835,8 +834,6 @@ Wire Wire Line
 Wire Wire Line
 	5650 6750 5800 6750
 Wire Wire Line
-	5800 6850 5650 6850
-Wire Wire Line
 	5450 4550 5800 4550
 Wire Wire Line
 	5450 4650 5800 4650
@@ -1039,4 +1036,11 @@ Connection ~ 2350 1150
 Wire Wire Line
 	1600 1200 1600 1150
 Connection ~ 1600 1150
+Wire Wire Line
+	4050 5950 3800 5950
+Wire Wire Line
+	3800 5950 3800 5700
+Wire Wire Line
+	3800 5700 3750 5700
+NoConn ~ 5800 6850
 $EndSCHEMATC
