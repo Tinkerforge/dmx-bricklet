@@ -64,6 +64,7 @@ void __attribute__((optimize("-O3"))) __attribute__ ((section (".ram_code"))) dm
 		DMX_USIC->IN[0] = *dmx_payload_write_current++;
 
 		if(dmx_payload_write_current >= dmx_payload_write_end) {
+			dmx.frame_number++;
 			dmx_payload_write_current = dmx_payload_write_start;
 			XMC_USIC_CH_TXFIFO_DisableEvent(DMX_USIC, XMC_USIC_CH_TXFIFO_EVENT_CONF_STANDARD);
 
