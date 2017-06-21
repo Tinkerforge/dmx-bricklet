@@ -31,10 +31,8 @@
 #define DMX_USIC                XMC_UART1_CH1
 
 #define DMX_RX_PIN              P3_0
-//#define DMX_RX_PIN              P2_13
 #define DMX_RX_INPUT            XMC_USIC_CH_INPUT_DX0
 #define DMX_RX_SOURCE           0b100 // DX0E
-//#define DMX_RX_SOURCE           0b011 // DX0D
 
 #define DMX_TX_PIN              P2_12
 #define DMX_TX_PIN_AF           (XMC_GPIO_MODE_OUTPUT_PUSH_PULL_ALT7 | P2_12_AF_U1C1_DOUT0)

@@ -273,8 +273,6 @@ void dmx_init_hardware(DMX *dmx, const uint8_t mode) {
 		XMC_GPIO_Init(DMX_NRXE_PIN, &enable_pin_config_slave);
 	}
 
-	XMC_GPIO_Init(P2_13, &rx_pin_config); // TODO: Remove me in production!
-
 	// Initialize USIC channel in UART master mode
 	// USIC channel configuration
 	XMC_UART_CH_CONFIG_t config;
