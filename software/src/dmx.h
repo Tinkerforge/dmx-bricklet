@@ -23,8 +23,16 @@
 #define DMX_H
 
 #include <stdint.h>
+#include <stdbool.h>
 
-#define DMX_FRAME_PAYLOAD_LENGTH 512
+#include "communication.h"
+
+#include "bricklib2/utility/led_flicker.h"
+
+#define DMX_OVERSAMPLING 16
+#define DMX_BAUDRATE     250000
+
+#define DMX_FRAME_PAYLOAD_LENGTH_MAX 512
 
 // http://www.dmx512-online.com/packt.html
 #define DMX_TIME_MTBF  0    // Mark Time Between Frames
@@ -33,15 +41,50 @@
 #define DMX_TIME_MTBP  0    // Mark Time Between Packets
 
 typedef struct {
-	uint8_t payload[DMX_FRAME_PAYLOAD_LENGTH + 1]; // 0 = start code, 1-512 = data
+	uint8_t start_code;
+	uint8_t payload[DMX_FRAME_PAYLOAD_LENGTH_MAX];
 	uint16_t length;
-} DMXFrame;
+	uint32_t frame_number;
+} __attribute__((packed)) DMXFrame;
 
 typedef struct {
 	DMXFrame frame_write_in;
+	bool frame_write_in_ready;
 	DMXFrame frame_write_out;
-	DMXFrame frame_read;
+
+	DMXFrame frame_read_in[2];
+	DMXFrame frame_read_out;
+	uint16_t frame_read_out_index;
+	uint8_t frame_next_read_in;
+	uint8_t frame_next_copy;
+	bool frame_next_data_consumed;
+
+	uint32_t frame_number;
+
+	bool new_frame_allowed;
+
+	uint16_t frame_duration;
+	uint32_t frame_duration_timestamp;
+
+	uint32_t error_count_overrun;
+	uint32_t error_count_parity;
+
+	LEDFlickerState red_led_state;
+	LEDFlickerState yellow_led_state;
+
+	uint8_t mode;
+
+	bool frame_started_callback_enabled;
+	bool frame_available_callback_enabled;
+	bool frame_callback_enabled;
+	bool frame_error_count_callback_enabled;
+
+	bool frame_started_callback;
+	bool frame_available_callback;
+	bool frame_callback;
 } DMX;
+
+void dmx_change_mode(DMX *dmx, const uint8_t mode);
 
 void dmx_init(DMX *dmx);
 void dmx_tick(DMX *dmx);

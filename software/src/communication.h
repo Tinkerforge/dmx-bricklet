@@ -35,7 +35,17 @@ void communication_init(void);
 
 // Constants
 #define DMX_DMX_MODE_MASTER 0
-#define DMX_DMX_MODE_SLAVE 0
+#define DMX_DMX_MODE_SLAVE 1
+
+#define DMX_COMMUNICATION_LED_CONFIG_OFF 0
+#define DMX_COMMUNICATION_LED_CONFIG_ON 1
+#define DMX_COMMUNICATION_LED_CONFIG_SHOW_HEARTBEAT 2
+#define DMX_COMMUNICATION_LED_CONFIG_SHOW_COMMUNICATION 3
+
+#define DMX_ERROR_LED_CONFIG_OFF 0
+#define DMX_ERROR_LED_CONFIG_ON 1
+#define DMX_ERROR_LED_CONFIG_SHOW_HEARTBEAT 2
+#define DMX_ERROR_LED_CONFIG_SHOW_ERROR 3
 
 // Function and callback IDs and structs
 #define FID_SET_DMX_MODE 1
@@ -45,12 +55,18 @@ void communication_init(void);
 #define FID_SET_FRAME_DURATION 5
 #define FID_GET_FRAME_DURATION 6
 #define FID_DRAW_FRAME 7
-#define FID_SET_FRAME_CALLBACK_CONFIGURATION 8
-#define FID_GET_FRAME_CALLBACK_CONFIGURATION 9
+#define FID_GET_FRAME_ERROR_COUNT 8
+#define FID_SET_COMMUNICATION_LED_CONFIG 9
+#define FID_GET_COMMUNICATION_LED_CONFIG 10
+#define FID_SET_ERROR_LED_CONFIG 11
+#define FID_GET_ERROR_LED_CONFIG 12
+#define FID_SET_FRAME_CALLBACK_CONFIG 13
+#define FID_GET_FRAME_CALLBACK_CONFIG 14
 
-#define FID_CALLBACK_FRAME_STARTED 10
-#define FID_CALLBACK_FRAME_AVAILABLE 11
-#define FID_CALLBACK_FRAME_LOW_LEVEL 12
+#define FID_CALLBACK_FRAME_STARTED 15
+#define FID_CALLBACK_FRAME_AVAILABLE 16
+#define FID_CALLBACK_FRAME_LOW_LEVEL 17
+#define FID_CALLBACK_FRAME_ERROR_COUNT 18
 
 typedef struct {
 	TFPMessageHeader header;
@@ -70,24 +86,19 @@ typedef struct {
 	TFPMessageHeader header;
 	uint16_t frame_length;
 	uint16_t frame_chunk_offset;
-	char frame_chunk_data[60];
+	uint8_t frame_chunk_data[60];
 } __attribute__((__packed__)) WriteFrameLowLevel;
 
 typedef struct {
 	TFPMessageHeader header;
-	uint8_t frame_chunk_written;
-} __attribute__((__packed__)) WriteFrameLowLevel_Response;
-
-typedef struct {
-	TFPMessageHeader header;
-	uint16_t length;
 } __attribute__((__packed__)) ReadFrameLowLevel;
 
 typedef struct {
 	TFPMessageHeader header;
 	uint16_t frame_length;
 	uint16_t frame_chunk_offset;
-	char frame_chunk_data[60];
+	uint8_t frame_chunk_data[56];
+	uint32_t frame_number;
 } __attribute__((__packed__)) ReadFrameLowLevel_Response;
 
 typedef struct {
@@ -110,21 +121,61 @@ typedef struct {
 
 typedef struct {
 	TFPMessageHeader header;
-	bool frame_started_callback_enabled;
-	bool frame_available_callback_enabled;
-	bool frame_callback_enabled;
-} __attribute__((__packed__)) SetFrameCallbackConfiguration;
+} __attribute__((__packed__)) GetFrameErrorCount;
 
 typedef struct {
 	TFPMessageHeader header;
-} __attribute__((__packed__)) GetFrameCallbackConfiguration;
+	uint32_t overrun_error_count;
+	uint32_t parity_error_count;
+} __attribute__((__packed__)) GetFrameErrorCount_Response;
+
+typedef struct {
+	TFPMessageHeader header;
+	uint8_t config;
+} __attribute__((__packed__)) SetCommunicationLEDConfig;
+
+typedef struct {
+	TFPMessageHeader header;
+} __attribute__((__packed__)) GetCommunicationLEDConfig;
+
+typedef struct {
+	TFPMessageHeader header;
+	uint8_t config;
+} __attribute__((__packed__)) GetCommunicationLEDConfig_Response;
+
+typedef struct {
+	TFPMessageHeader header;
+	uint8_t config;
+} __attribute__((__packed__)) SetErrorLEDConfig;
+
+typedef struct {
+	TFPMessageHeader header;
+} __attribute__((__packed__)) GetErrorLEDConfig;
+
+typedef struct {
+	TFPMessageHeader header;
+	uint8_t config;
+} __attribute__((__packed__)) GetErrorLEDConfig_Response;
 
 typedef struct {
 	TFPMessageHeader header;
 	bool frame_started_callback_enabled;
 	bool frame_available_callback_enabled;
 	bool frame_callback_enabled;
-} __attribute__((__packed__)) GetFrameCallbackConfiguration_Response;
+	bool frame_error_count_callback_enabled;
+} __attribute__((__packed__)) SetFrameCallbackConfig;
+
+typedef struct {
+	TFPMessageHeader header;
+} __attribute__((__packed__)) GetFrameCallbackConfig;
+
+typedef struct {
+	TFPMessageHeader header;
+	bool frame_started_callback_enabled;
+	bool frame_available_callback_enabled;
+	bool frame_callback_enabled;
+	bool frame_error_count_callback_enabled;
+} __attribute__((__packed__)) GetFrameCallbackConfig_Response;
 
 typedef struct {
 	TFPMessageHeader header;
@@ -132,39 +183,53 @@ typedef struct {
 
 typedef struct {
 	TFPMessageHeader header;
-	uint16_t frame_length;
+	uint32_t frame_number;
 } __attribute__((__packed__)) FrameAvailable_Callback;
 
 typedef struct {
 	TFPMessageHeader header;
 	uint16_t frame_length;
 	uint16_t frame_chunk_offset;
-	char frame_chunk_data[60];
+	uint8_t frame_chunk_data[56];
+	uint32_t frame_number;
 } __attribute__((__packed__)) FrameLowLevel_Callback;
+
+typedef struct {
+	TFPMessageHeader header;
+	uint32_t overrun_error_count;
+	uint32_t parity_error_count;
+} __attribute__((__packed__)) FrameErrorCount_Callback;
 
 
 // Function prototypes
 BootloaderHandleMessageResponse set_dmx_mode(const SetDMXMode *data);
 BootloaderHandleMessageResponse get_dmx_mode(const GetDMXMode *data, GetDMXMode_Response *response);
-BootloaderHandleMessageResponse write_frame_low_level(const WriteFrameLowLevel *data, WriteFrameLowLevel_Response *response);
+BootloaderHandleMessageResponse write_frame_low_level(const WriteFrameLowLevel *data);
 BootloaderHandleMessageResponse read_frame_low_level(const ReadFrameLowLevel *data, ReadFrameLowLevel_Response *response);
 BootloaderHandleMessageResponse set_frame_duration(const SetFrameDuration *data);
 BootloaderHandleMessageResponse get_frame_duration(const GetFrameDuration *data, GetFrameDuration_Response *response);
 BootloaderHandleMessageResponse draw_frame(const DrawFrame *data);
-BootloaderHandleMessageResponse set_frame_callback_configuration(const SetFrameCallbackConfiguration *data);
-BootloaderHandleMessageResponse get_frame_callback_configuration(const GetFrameCallbackConfiguration *data, GetFrameCallbackConfiguration_Response *response);
+BootloaderHandleMessageResponse get_frame_error_count(const GetFrameErrorCount *data, GetFrameErrorCount_Response *response);
+BootloaderHandleMessageResponse set_communication_led_config(const SetCommunicationLEDConfig *data);
+BootloaderHandleMessageResponse get_communication_led_config(const GetCommunicationLEDConfig *data, GetCommunicationLEDConfig_Response *response);
+BootloaderHandleMessageResponse set_error_led_config(const SetErrorLEDConfig *data);
+BootloaderHandleMessageResponse get_error_led_config(const GetErrorLEDConfig *data, GetErrorLEDConfig_Response *response);
+BootloaderHandleMessageResponse set_frame_callback_config(const SetFrameCallbackConfig *data);
+BootloaderHandleMessageResponse get_frame_callback_config(const GetFrameCallbackConfig *data, GetFrameCallbackConfig_Response *response);
 
 // Callbacks
 bool handle_frame_started_callback(void);
 bool handle_frame_available_callback(void);
 bool handle_frame_low_level_callback(void);
+bool handle_frame_error_count_callback(void);
 
 #define COMMUNICATION_CALLBACK_TICK_WAIT_MS 1
-#define COMMUNICATION_CALLBACK_HANDLER_NUM 3
+#define COMMUNICATION_CALLBACK_HANDLER_NUM 4
 #define COMMUNICATION_CALLBACK_LIST_INIT \
 	handle_frame_started_callback, \
 	handle_frame_available_callback, \
 	handle_frame_low_level_callback, \
+	handle_frame_error_count_callback, \
 
 
 #endif

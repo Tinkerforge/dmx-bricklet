@@ -25,8 +25,6 @@
 
 #include "xmc_gpio.h"
 
-// TODO: CHECK ALL DEFINES!!!
-
 // --- Basic defines ---
 #define BOOTLOADER_DEVICE_IDENTIFIER   285
 #define BOOTLOADER_HW_VERSION_MAJOR    1
@@ -38,6 +36,7 @@
 
 #define BOOTLOADER_FLASH_EEPROM_SIZE   (4*256)
 #define BOOTLOADER_FLASH_SIZE          (64*1024 - BOOTLOADER_FLASH_EEPROM_SIZE)
+
 
 // --- Oscilater defines ---
 #define OSCHP_FREQUENCY 16000000

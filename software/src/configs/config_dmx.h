@@ -30,9 +30,11 @@
 #define DMX_USIC_CHANNEL        USIC1_CH1
 #define DMX_USIC                XMC_UART1_CH1
 
-#define DMX_RX_PIN              P2_13
+#define DMX_RX_PIN              P3_0
+//#define DMX_RX_PIN              P2_13
 #define DMX_RX_INPUT            XMC_USIC_CH_INPUT_DX0
-#define DMX_RX_SOURCE           0b011 // DX0D
+#define DMX_RX_SOURCE           0b100 // DX0E
+//#define DMX_RX_SOURCE           0b011 // DX0D
 
 #define DMX_TX_PIN              P2_12
 #define DMX_TX_PIN_AF           (XMC_GPIO_MODE_OUTPUT_PUSH_PULL_ALT7 | P2_12_AF_U1C1_DOUT0)
@@ -43,6 +45,9 @@
 #define DMX_NRXE_AND_TXE_PORT   XMC_GPIO_PORT2
 #define DMX_NRXE_PIN_NUM        11
 #define DMX_TXE_PIN_NUM         10
+
+#define DMX_TIMER_CCU4          CCU41
+#define DMX_TIMER_CCU4_SLICE    CCU41_CC41
 
 #define DMX_SERVICE_REQUEST_RX  2  // receive
 #define DMX_SERVICE_REQUEST_TX  3  // transfer
@@ -57,7 +62,7 @@
 // TX should never interrupt RX (we would lose data in this case)
 // For full-duplex there is no TFF and RX should be higher priority then TX
 #define DMX_IRQ_RX              11
-#define DMX_IRQ_RX_PRIORITY     0
+#define DMX_IRQ_RX_PRIORITY     1
 #define DMX_IRQCTRL_RX          XMC_SCU_IRQCTRL_USIC1_SR2_IRQ11
 
 #define DMX_IRQ_TX              12
@@ -69,5 +74,11 @@
 #define DMX_IRQCTRL_TFF         XMC_SCU_IRQCTRL_USIC1_SR4_IRQ13
 
 #define DMX_IRQ_RXA             14
-#define DMX_IRQ_RXA_PRIORITY    0
+#define DMX_IRQ_RXA_PRIORITY    1
 #define DMX_IRQCTRL_RXA         XMC_SCU_IRQCTRL_USIC1_SR5_IRQ14
+
+#define DMX_IRQ_TIMER           21
+#define DMX_IRQ_TIMER_PRIORITY  0
+#define DMX_IRQCTRL_TIMER       XMC_SCU_IRQCTRL_CCU41_SR0_IRQ21
+
+#endif
