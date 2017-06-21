@@ -121,13 +121,14 @@ void __attribute__((optimize("-O3"))) __attribute__ ((section (".ram_code"))) dm
 }
 
 void __attribute__((optimize("-O3"))) __attribute__ ((section (".ram_code"))) dmx_rxa_irq_handler(void) {
-	dmx.error_count_parity++;
+	dmx.error_count_framing++;
 	if(dmx.red_led_state.config == LED_FLICKER_CONFIG_EXTERNAL) {
 		XMC_GPIO_SetOutputLow(DMX_LED_RED_PIN);
 	}
 
-	// Call rx handler, we try to handle the data even in case of a parity error
+	// Call rx handler, we try to handle the data even in case of a framing error
 	dmx_rx_irq_handler();
+
 }
 
 void __attribute__((optimize("-O3"))) __attribute__ ((section (".ram_code"))) dmx_timer_handler(void) {

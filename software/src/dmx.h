@@ -67,7 +67,7 @@ typedef struct {
 	uint32_t frame_duration_timestamp;
 
 	uint32_t error_count_overrun;
-	uint32_t error_count_parity;
+	uint32_t error_count_framing;
 
 	LEDFlickerState red_led_state;
 	LEDFlickerState yellow_led_state;

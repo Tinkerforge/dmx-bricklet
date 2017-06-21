@@ -145,7 +145,7 @@ BootloaderHandleMessageResponse draw_frame(const DrawFrame *data) {
 BootloaderHandleMessageResponse get_frame_error_count(const GetFrameErrorCount *data, GetFrameErrorCount_Response *response) {
 	response->header.length = sizeof(GetFrameErrorCount_Response);
 	response->overrun_error_count = dmx.error_count_overrun;
-	response->parity_error_count  = dmx.error_count_parity;
+	response->framing_error_count = dmx.error_count_framing;
 
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }
@@ -322,7 +322,7 @@ bool handle_frame_error_count_callback(void) {
 	static bool is_buffered = false;
 	static FrameErrorCount_Callback cb;
 
-	static uint32_t last_error_count_parity = 0;
+	static uint32_t last_error_count_framing = 0;
 	static uint32_t last_error_count_overrun = 0;
 	static uint32_t last_time = 0;
 
@@ -334,12 +334,12 @@ bool handle_frame_error_count_callback(void) {
 
 	if(!is_buffered) {
 		if(system_timer_is_time_elapsed_ms(last_time, CALLBACK_ERROR_COUNT_DEBOUNCE_MS) &&
-		   (dmx.error_count_overrun != last_error_count_overrun || dmx.error_count_parity != last_error_count_parity)) {
+		   (dmx.error_count_overrun != last_error_count_overrun || dmx.error_count_framing != last_error_count_framing)) {
 			last_time = system_timer_get_ms();
 
 			tfp_make_default_header(&cb.header, bootloader_get_uid(), sizeof(FrameErrorCount_Callback), FID_CALLBACK_FRAME_ERROR_COUNT);
 			cb.overrun_error_count = dmx.error_count_overrun;
-			cb.parity_error_count  = dmx.error_count_parity;
+			cb.framing_error_count = dmx.error_count_framing;
 
 			is_buffered = true;
 		}

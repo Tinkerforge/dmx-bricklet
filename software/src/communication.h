@@ -126,7 +126,7 @@ typedef struct {
 typedef struct {
 	TFPMessageHeader header;
 	uint32_t overrun_error_count;
-	uint32_t parity_error_count;
+	uint32_t framing_error_count;
 } __attribute__((__packed__)) GetFrameErrorCount_Response;
 
 typedef struct {
@@ -197,7 +197,7 @@ typedef struct {
 typedef struct {
 	TFPMessageHeader header;
 	uint32_t overrun_error_count;
-	uint32_t parity_error_count;
+	uint32_t framing_error_count;
 } __attribute__((__packed__)) FrameErrorCount_Callback;
 
 
