@@ -58,6 +58,7 @@ typedef struct {
 	uint8_t frame_next_read_in;
 	uint8_t frame_next_copy;
 	bool frame_next_data_consumed;
+	bool frame_read_first;
 
 	uint32_t frame_number;
 

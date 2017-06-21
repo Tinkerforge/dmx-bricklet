@@ -110,8 +110,9 @@ void __attribute__((optimize("-O3"))) __attribute__ ((section (".ram_code"))) dm
 				XMC_GPIO_SetOutputLow(DMX_LED_RED_PIN);
 			}
 			dmx.error_count_overrun++;
+
 		  	// Disable USIC Standard Receive Buffer interrupt
-		    XMC_USIC_CH_RXFIFO_DisableEvent(DMX_USIC, XMC_USIC_CH_RXFIFO_EVENT_CONF_STANDARD);
+		    XMC_USIC_CH_RXFIFO_DisableEvent(DMX_USIC, XMC_USIC_CH_RXFIFO_EVENT_CONF_STANDARD | XMC_USIC_CH_RXFIFO_EVENT_ALTERNATE);
 		    // Clear receive buffer status
 		    XMC_USIC_CH_RXFIFO_ClearEvent(DMX_USIC, XMC_USIC_CH_RXFIFO_EVENT_STANDARD | XMC_USIC_CH_RXFIFO_EVENT_ERROR | XMC_USIC_CH_RXFIFO_EVENT_ALTERNATE);
 		    XMC_USIC_CH_RXFIFO_Flush(DMX_USIC);
@@ -139,11 +140,15 @@ void __attribute__((optimize("-O3"))) __attribute__ ((section (".ram_code"))) dm
 	// Handle rx if data in buffer left
 	dmx_rx_irq_handler();
 
-	dmx.frame_read_in[dmx.frame_next_read_in].length = 512 - (dmx_payload_read_end_cmp - dmx_payload_read_current);
+	const uint16_t length = 512 - (dmx_payload_read_end_cmp - dmx_payload_read_current);
+	dmx.frame_read_in[dmx.frame_next_read_in].length = length;
 
-	if(dmx.frame_next_copy == 0xFF && dmx.frame_next_data_consumed) {
-		dmx.frame_next_copy = dmx.frame_next_read_in;
-		dmx.frame_next_read_in = (dmx.frame_next_read_in + 1) & 1;
+	if(length > 0) {
+		if(dmx.frame_next_copy == 0xFF && dmx.frame_next_data_consumed) {
+			dmx.frame_next_copy = dmx.frame_next_read_in;
+			dmx.frame_next_read_in = (dmx.frame_next_read_in + 1) & 1;
+			dmx.frame_number++;
+		}
 	}
 
 	// Start from beginning again
@@ -233,31 +238,7 @@ void dmx_init_timer(DMX *dmx) {
 	NVIC_EnableIRQ(DMX_IRQ_TIMER);
 }
 
-void dmx_change_mode(DMX *dmx, const uint8_t mode) {
-	dmx->frame_number = 0;
-	if(dmx->mode == mode) {
-		return;
-	}
-
-	dmx->mode = mode;
-	if(dmx->mode == DMX_DMX_MODE_MASTER) {
-		dmx->frame_duration_timestamp = system_timer_get_ms();
-		dmx_payload_write_current = dmx_payload_write_start;
-		dmx->new_frame_allowed = true;
-		dmx->frame_write_in_ready = false;
-
-		DMX_NRXE_AND_TXE_PORT->OMR = ((0x1 << DMX_TXE_PIN_NUM) | (0x1 << DMX_NRXE_PIN_NUM));
-		NVIC_DisableIRQ(DMX_IRQ_TIMER);
-	} else {
-		XMC_USIC_CH_TXFIFO_DisableEvent(DMX_USIC, XMC_USIC_CH_TXFIFO_EVENT_CONF_STANDARD);
-		dmx->frame_next_copy = 0xFF;
-		dmx->frame_next_data_consumed = true;
-		DMX_NRXE_AND_TXE_PORT->OMR = ((0x10000 << DMX_TXE_PIN_NUM) | (0x10000 << DMX_NRXE_PIN_NUM));
-		NVIC_EnableIRQ(DMX_IRQ_TIMER);
-	}
-}
-
-void dmx_init_hardware(DMX *dmx) {
+void dmx_init_hardware(DMX *dmx, const uint8_t mode) {
 	// TX pin configuration
 	const XMC_GPIO_CONFIG_t tx_pin_config = {
 		.mode             = DMX_TX_PIN_AF,
@@ -271,22 +252,26 @@ void dmx_init_hardware(DMX *dmx) {
 	};
 
 	// TXE (tx enable) pin configuration
-	const XMC_GPIO_CONFIG_t txe_pin_config = {
+	const XMC_GPIO_CONFIG_t enable_pin_config_master = {
 		.mode             = XMC_GPIO_MODE_OUTPUT_PUSH_PULL,
 		.output_level     = XMC_GPIO_OUTPUT_LEVEL_HIGH
 	};
 
-	// NRXE (not rx enable) pin configuration
-	const XMC_GPIO_CONFIG_t nrxe_pin_config = {
+	const XMC_GPIO_CONFIG_t enable_pin_config_slave = {
 		.mode             = XMC_GPIO_MODE_OUTPUT_PUSH_PULL,
-		.output_level     = XMC_GPIO_OUTPUT_LEVEL_HIGH
+		.output_level     = XMC_GPIO_OUTPUT_LEVEL_LOW
 	};
 
 	// Configure  pins
 	XMC_GPIO_Init(DMX_TX_PIN, &tx_pin_config);
 	XMC_GPIO_Init(DMX_RX_PIN, &rx_pin_config);
-	XMC_GPIO_Init(DMX_TXE_PIN, &txe_pin_config);
-	XMC_GPIO_Init(DMX_NRXE_PIN, &nrxe_pin_config);
+	if(mode == DMX_DMX_MODE_MASTER) {
+		XMC_GPIO_Init(DMX_TXE_PIN, &enable_pin_config_master);
+		XMC_GPIO_Init(DMX_NRXE_PIN, &enable_pin_config_master);
+	} else {
+		XMC_GPIO_Init(DMX_TXE_PIN, &enable_pin_config_slave);
+		XMC_GPIO_Init(DMX_NRXE_PIN, &enable_pin_config_slave);
+	}
 
 	XMC_GPIO_Init(P2_13, &rx_pin_config); // TODO: Remove me in production!
 
@@ -349,9 +334,7 @@ void dmx_init_hardware(DMX *dmx) {
 	XMC_USIC_CH_EnableEvent(DMX_USIC, XMC_USIC_CH_EVENT_ALTERNATIVE_RECEIVE);
 }
 
-void dmx_init(DMX *dmx) {
-	memset(dmx, 0, sizeof(DMX));
-
+void dmx_init_leds(DMX *dmx) {
 	dmx->yellow_led_state.config  = DMX_COMMUNICATION_LED_CONFIG_SHOW_COMMUNICATION;
 	dmx->yellow_led_state.counter = 0;
 	dmx->yellow_led_state.start   = 0;
@@ -369,25 +352,103 @@ void dmx_init(DMX *dmx) {
 
 	led_pin_config.output_level = XMC_GPIO_OUTPUT_LEVEL_LOW; // Default on for yellow LED
 	XMC_GPIO_Init(DMX_LED_YELLOW_PIN, &led_pin_config);
-
-	dmx->new_frame_allowed = true;
-	dmx->frame_duration = 100;
-	dmx->frame_duration_timestamp = 0;
-	dmx->mode = DMX_DMX_MODE_MASTER;
-
-	dmx->frame_write_in_ready = false;
-
-	dmx->frame_started_callback_enabled = true;
-	dmx->frame_available_callback_enabled = true;
-	dmx->frame_callback_enabled = false;
-	dmx->frame_error_count_callback_enabled = false;
-
-	dmx->frame_next_copy = 0xFF;
-	dmx->frame_next_data_consumed = true;
-
-	dmx_init_hardware(dmx);
-	dmx_init_timer(dmx);
 }
+
+void dmx_init_memory(DMX *dmx, const bool initial) {
+	if(initial) {
+		// Reset all memory, set user settings to default
+		memset(dmx, 0, sizeof(DMX));
+		dmx->new_frame_allowed = true;
+		dmx->frame_duration = 100;
+		dmx->mode = DMX_DMX_MODE_MASTER;
+
+		dmx->frame_write_in_ready = false;
+
+		dmx->frame_started_callback_enabled = true;
+		dmx->frame_available_callback_enabled = true;
+		dmx->frame_callback_enabled = false;
+		dmx->frame_error_count_callback_enabled = false;
+
+		dmx->frame_next_copy = 0xFF;
+		dmx->frame_next_data_consumed = true;
+		dmx->frame_read_first = true;
+
+		dmx->frame_duration_timestamp = system_timer_get_ms();
+		dmx_payload_write_current = dmx_payload_write_start;
+	} else {
+		// Reset all memory, keep user settings
+		memset(&dmx->frame_write_in, 0, sizeof(DMXFrame));
+		dmx->frame_write_in_ready = false;
+		memset(&dmx->frame_write_out, 0, sizeof(DMXFrame));
+
+		memset(&dmx->frame_read_in[0], 0, sizeof(DMXFrame));
+		memset(&dmx->frame_read_in[1], 0, sizeof(DMXFrame));
+		memset(&dmx->frame_read_out, 0, sizeof(DMXFrame));
+
+		dmx->frame_read_out_index = 0;
+		dmx->frame_next_read_in = 0;
+		dmx->frame_next_copy = 0xFF;
+		dmx->frame_next_data_consumed = true;
+		dmx->frame_read_first = true;
+
+		dmx->frame_number = 0;
+
+		dmx->new_frame_allowed = true;
+		dmx->frame_duration_timestamp = system_timer_get_ms();
+
+		dmx->error_count_overrun = 0;
+		dmx->error_count_framing = 0;
+
+		dmx->frame_started_callback = false;
+		dmx->frame_available_callback = false;
+		dmx->frame_callback = false;
+	}
+}
+
+void dmx_change_mode(DMX *dmx, const uint8_t mode) {
+	dmx->error_count_overrun = 0;
+	dmx->error_count_framing = 0;
+	dmx->frame_number = 0;
+
+	if(dmx->mode == mode) {
+		return;
+	}
+
+	__disable_irq();
+	dmx->mode = mode;
+
+	// Flush and disable buffer
+	dmx_payload_write_current = dmx_payload_write_start;
+	XMC_USIC_CH_TXFIFO_DisableEvent(DMX_USIC, XMC_USIC_CH_TXFIFO_EVENT_CONF_STANDARD);
+
+	dmx_payload_read_current = dmx_payload_read_start0;
+	dmx_payload_read_end_cmp = dmx_payload_read_end0;
+    XMC_USIC_CH_RXFIFO_DisableEvent(DMX_USIC, XMC_USIC_CH_RXFIFO_EVENT_CONF_STANDARD);
+    XMC_USIC_CH_RXFIFO_ClearEvent(DMX_USIC, XMC_USIC_CH_RXFIFO_EVENT_STANDARD | XMC_USIC_CH_RXFIFO_EVENT_ERROR | XMC_USIC_CH_RXFIFO_EVENT_ALTERNATE);
+    XMC_USIC_CH_RXFIFO_Flush(DMX_USIC);
+
+	dmx_init_memory(dmx, false);
+	dmx_init_hardware(dmx, dmx->mode);
+	dmx_init_timer(dmx);
+
+	if(dmx->mode == DMX_DMX_MODE_MASTER) {
+		NVIC_DisableIRQ(DMX_IRQ_TIMER);
+	} else {
+		NVIC_EnableIRQ(DMX_IRQ_TIMER);
+	}
+	NVIC_ClearPendingIRQ(DMX_IRQ_TIMER);
+	__enable_irq();
+}
+
+void dmx_init(DMX *dmx) {
+	__disable_irq();
+	dmx_init_memory(dmx, true);
+	dmx_init_leds(dmx);
+	dmx_init_hardware(dmx, DMX_DMX_MODE_MASTER);
+	dmx_init_timer(dmx);
+	__enable_irq();
+}
+
 
 void dmx_tick(DMX *dmx) {
 	if(dmx->mode == DMX_DMX_MODE_MASTER) {
@@ -437,17 +498,28 @@ void dmx_tick(DMX *dmx) {
 		}
 	} else {
 		if(dmx->frame_next_copy != 0xFF && dmx->frame_next_data_consumed) {
-			memcpy(&dmx->frame_read_out, &dmx->frame_read_in[dmx->frame_next_copy], sizeof(DMXFrame));
-			dmx->frame_next_data_consumed = false;
+			if(dmx->frame_read_first) {
+				// We discard the very first read frame.
+				// We can't guarantee that we were able to read a full frame in this case.
+				dmx->frame_read_first = false;
+				dmx->frame_next_data_consumed = true;
+			} else {
+				memcpy(&dmx->frame_read_out, &dmx->frame_read_in[dmx->frame_next_copy], sizeof(DMXFrame));
+				dmx->frame_next_data_consumed = false;
+
+				if(dmx->frame_available_callback_enabled) {
+					dmx->frame_available_callback = true;
+				}
+
+				if(dmx->frame_callback_enabled) {
+					dmx->frame_callback = true;
+				}
+
+				dmx->yellow_led_state.counter += LED_FLICKER_STATUS_COUNTER_MAX/10; // We flicker once per 5 send dmx packet
+			}
+
 			dmx->frame_next_copy = 0xFF;
-		}
 
-		if(dmx->frame_available_callback_enabled) {
-			dmx->frame_available_callback = true;
-		}
-
-		if(dmx->frame_callback_enabled) {
-			dmx->frame_callback = true;
 		}
 	}
 
