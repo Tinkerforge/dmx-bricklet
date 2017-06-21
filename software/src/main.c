@@ -26,16 +26,12 @@
 
 #include "bricklib2/bootloader/bootloader.h"
 #include "bricklib2/hal/system_timer/system_timer.h"
-#include "bricklib2/hal/uartbb/uartbb.h"
 #include "communication.h"
 #include "dmx.h"
 
 DMX dmx;
 
 int main(void) {
-	uartbb_init();
-	uartbb_puts("Start DMX Bricklet\n\r");
-
 	communication_init();
 	dmx_init(&dmx);
 

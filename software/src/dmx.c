@@ -60,7 +60,6 @@ static uint8_t *dmx_payload_read_end1    = dmx.frame_read_in[1].payload + 512;
 
 
 void __attribute__((optimize("-O3"))) __attribute__ ((section (".ram_code"))) dmx_tx_irq_handler(void) {
-	XMC_GPIO_SetOutputHigh(DMX_LED_RED_PIN);
 	while(!XMC_USIC_CH_TXFIFO_IsFull(DMX_USIC)) {
 		DMX_USIC->IN[0] = *dmx_payload_write_current++;
 
@@ -71,7 +70,6 @@ void __attribute__((optimize("-O3"))) __attribute__ ((section (".ram_code"))) dm
 			return;
 		}
 	}
-	XMC_GPIO_SetOutputLow(DMX_LED_RED_PIN);
 }
 
 void __attribute__((optimize("-O3"))) __attribute__ ((section (".ram_code"))) dmx_tff_irq_handler(void) {
@@ -102,7 +100,6 @@ void __attribute__((optimize("-O3"))) __attribute__ ((section (".ram_code"))) dm
 }
 
 void __attribute__((optimize("-O3"))) __attribute__ ((section (".ram_code"))) dmx_rx_irq_handler(void) {
-	XMC_GPIO_SetOutputHigh(DMX_LED_YELLOW_PIN);
 	while(!XMC_USIC_CH_RXFIFO_IsEmpty(DMX_USIC)) {
 		if(dmx_payload_read_current < dmx_payload_read_end_cmp) {
 			*dmx_payload_read_current = DMX_USIC->OUTR;
@@ -118,11 +115,9 @@ void __attribute__((optimize("-O3"))) __attribute__ ((section (".ram_code"))) dm
 		    XMC_USIC_CH_RXFIFO_ClearEvent(DMX_USIC, XMC_USIC_CH_RXFIFO_EVENT_STANDARD | XMC_USIC_CH_RXFIFO_EVENT_ERROR | XMC_USIC_CH_RXFIFO_EVENT_ALTERNATE);
 		    XMC_USIC_CH_RXFIFO_Flush(DMX_USIC);
 
-		    XMC_GPIO_SetOutputLow(DMX_LED_YELLOW_PIN);
 		    return;
 		}
 	}
-	XMC_GPIO_SetOutputLow(DMX_LED_YELLOW_PIN);
 }
 
 void __attribute__((optimize("-O3"))) __attribute__ ((section (".ram_code"))) dmx_rxa_irq_handler(void) {
@@ -136,7 +131,6 @@ void __attribute__((optimize("-O3"))) __attribute__ ((section (".ram_code"))) dm
 }
 
 void __attribute__((optimize("-O3"))) __attribute__ ((section (".ram_code"))) dmx_timer_handler(void) {
-	XMC_GPIO_SetOutputHigh(UARTBB_TX_PIN);
 	XMC_CCU4_SLICE_StopTimer(CCU41_CC41);
 	XMC_CCU4_SLICE_ClearTimer(CCU41_CC41);
 
@@ -161,7 +155,6 @@ void __attribute__((optimize("-O3"))) __attribute__ ((section (".ram_code"))) dm
 
 	// Enable USIC Standard Receive Buffer interrupt
 	XMC_USIC_CH_RXFIFO_EnableEvent(DMX_USIC, XMC_USIC_CH_RXFIFO_EVENT_CONF_STANDARD | XMC_USIC_CH_RXFIFO_EVENT_CONF_ALTERNATE);
-	XMC_GPIO_SetOutputLow(UARTBB_TX_PIN);
 }
 
 void dmx_init_timer(DMX *dmx) {
@@ -456,6 +449,6 @@ void dmx_tick(DMX *dmx) {
 		}
 	}
 
-//	led_flicker_tick(&dmx->yellow_led_state, system_timer_get_ms(), DMX_LED_YELLOW_PIN);
-//	led_flicker_tick(&dmx->red_led_state,    system_timer_get_ms(), DMX_LED_RED_PIN);
+	led_flicker_tick(&dmx->yellow_led_state, system_timer_get_ms(), DMX_LED_YELLOW_PIN);
+	led_flicker_tick(&dmx->red_led_state,    system_timer_get_ms(), DMX_LED_RED_PIN);
 }
