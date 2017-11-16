@@ -1,11 +1,11 @@
-(kicad_pcb (version 4) (host pcbnew 4.0.2+dfsg1-stable)
+(kicad_pcb (version 4) (host pcbnew 4.0.7-e2-6376~58~ubuntu17.04.1)
 
   (general
     (links 91)
     (no_connects 1)
-    (area 123.009999 65.929999 173.210001 121.130001)
+    (area 122.255139 57.03014 173.964861 121.884861)
     (thickness 1.6002)
-    (drawings 13)
+    (drawings 14)
     (tracks 384)
     (zones 0)
     (modules 44)
@@ -7309,6 +7309,9 @@
     )
   )
 
+  (gr_text "Termination\n\n\n\nNo Termination" (at 162.11 98.03) (layer F.SilkS)
+    (effects (font (size 0.75 0.75) (thickness 0.15)) (justify right))
+  )
   (gr_arc (start 170.61 68.53) (end 170.61 66.03) (angle 90) (layer Edge.Cuts) (width 0.2))
   (gr_line (start 173.11 118.53) (end 173.11 68.53) (angle 90) (layer Edge.Cuts) (width 0.2))
   (gr_line (start 125.61 121.03) (end 170.61 121.03) (angle 90) (layer Edge.Cuts) (width 0.2))
