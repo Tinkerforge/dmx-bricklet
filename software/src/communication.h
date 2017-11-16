@@ -47,6 +47,24 @@ void communication_init(void);
 #define DMX_ERROR_LED_CONFIG_SHOW_HEARTBEAT 2
 #define DMX_ERROR_LED_CONFIG_SHOW_ERROR 3
 
+#define DMX_BOOTLOADER_MODE_BOOTLOADER 0
+#define DMX_BOOTLOADER_MODE_FIRMWARE 1
+#define DMX_BOOTLOADER_MODE_BOOTLOADER_WAIT_FOR_REBOOT 2
+#define DMX_BOOTLOADER_MODE_FIRMWARE_WAIT_FOR_REBOOT 3
+#define DMX_BOOTLOADER_MODE_FIRMWARE_WAIT_FOR_ERASE_AND_REBOOT 4
+
+#define DMX_BOOTLOADER_STATUS_OK 0
+#define DMX_BOOTLOADER_STATUS_INVALID_MODE 1
+#define DMX_BOOTLOADER_STATUS_NO_CHANGE 2
+#define DMX_BOOTLOADER_STATUS_ENTRY_FUNCTION_NOT_PRESENT 3
+#define DMX_BOOTLOADER_STATUS_DEVICE_IDENTIFIER_INCORRECT 4
+#define DMX_BOOTLOADER_STATUS_CRC_MISMATCH 5
+
+#define DMX_STATUS_LED_CONFIG_OFF 0
+#define DMX_STATUS_LED_CONFIG_ON 1
+#define DMX_STATUS_LED_CONFIG_SHOW_HEARTBEAT 2
+#define DMX_STATUS_LED_CONFIG_SHOW_STATUS 3
+
 // Function and callback IDs and structs
 #define FID_SET_DMX_MODE 1
 #define FID_GET_DMX_MODE 2
@@ -54,19 +72,18 @@ void communication_init(void);
 #define FID_READ_FRAME_LOW_LEVEL 4
 #define FID_SET_FRAME_DURATION 5
 #define FID_GET_FRAME_DURATION 6
-#define FID_DRAW_FRAME 7
-#define FID_GET_FRAME_ERROR_COUNT 8
-#define FID_SET_COMMUNICATION_LED_CONFIG 9
-#define FID_GET_COMMUNICATION_LED_CONFIG 10
-#define FID_SET_ERROR_LED_CONFIG 11
-#define FID_GET_ERROR_LED_CONFIG 12
-#define FID_SET_FRAME_CALLBACK_CONFIG 13
-#define FID_GET_FRAME_CALLBACK_CONFIG 14
+#define FID_GET_FRAME_ERROR_COUNT 7
+#define FID_SET_COMMUNICATION_LED_CONFIG 8
+#define FID_GET_COMMUNICATION_LED_CONFIG 9
+#define FID_SET_ERROR_LED_CONFIG 10
+#define FID_GET_ERROR_LED_CONFIG 11
+#define FID_SET_FRAME_CALLBACK_CONFIG 12
+#define FID_GET_FRAME_CALLBACK_CONFIG 13
 
-#define FID_CALLBACK_FRAME_STARTED 15
-#define FID_CALLBACK_FRAME_AVAILABLE 16
-#define FID_CALLBACK_FRAME_LOW_LEVEL 17
-#define FID_CALLBACK_FRAME_ERROR_COUNT 18
+#define FID_CALLBACK_FRAME_STARTED 14
+#define FID_CALLBACK_FRAME_AVAILABLE 15
+#define FID_CALLBACK_FRAME_LOW_LEVEL 16
+#define FID_CALLBACK_FRAME_ERROR_COUNT 17
 
 typedef struct {
 	TFPMessageHeader header;
@@ -114,10 +131,6 @@ typedef struct {
 	TFPMessageHeader header;
 	uint16_t frame_duration;
 } __attribute__((__packed__)) GetFrameDuration_Response;
-
-typedef struct {
-	TFPMessageHeader header;
-} __attribute__((__packed__)) DrawFrame;
 
 typedef struct {
 	TFPMessageHeader header;
@@ -208,7 +221,6 @@ BootloaderHandleMessageResponse write_frame_low_level(const WriteFrameLowLevel *
 BootloaderHandleMessageResponse read_frame_low_level(const ReadFrameLowLevel *data, ReadFrameLowLevel_Response *response);
 BootloaderHandleMessageResponse set_frame_duration(const SetFrameDuration *data);
 BootloaderHandleMessageResponse get_frame_duration(const GetFrameDuration *data, GetFrameDuration_Response *response);
-BootloaderHandleMessageResponse draw_frame(const DrawFrame *data);
 BootloaderHandleMessageResponse get_frame_error_count(const GetFrameErrorCount *data, GetFrameErrorCount_Response *response);
 BootloaderHandleMessageResponse set_communication_led_config(const SetCommunicationLEDConfig *data);
 BootloaderHandleMessageResponse get_communication_led_config(const GetCommunicationLEDConfig *data, GetCommunicationLEDConfig_Response *response);

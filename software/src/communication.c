@@ -41,7 +41,6 @@ BootloaderHandleMessageResponse handle_message(const void *message, void *respon
 		case FID_READ_FRAME_LOW_LEVEL: return read_frame_low_level(message, response);
 		case FID_SET_FRAME_DURATION: return set_frame_duration(message);
 		case FID_GET_FRAME_DURATION: return get_frame_duration(message, response);
-		case FID_DRAW_FRAME: return draw_frame(message);
 		case FID_GET_FRAME_ERROR_COUNT: return get_frame_error_count(message, response);
 		case FID_SET_COMMUNICATION_LED_CONFIG: return set_communication_led_config(message);
 		case FID_GET_COMMUNICATION_LED_CONFIG: return get_communication_led_config(message, response);
@@ -135,11 +134,6 @@ BootloaderHandleMessageResponse get_frame_duration(const GetFrameDuration *data,
 	response->frame_duration = dmx.frame_duration;
 
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
-}
-
-BootloaderHandleMessageResponse draw_frame(const DrawFrame *data) {
-
-	return HANDLE_MESSAGE_RESPONSE_EMPTY;
 }
 
 BootloaderHandleMessageResponse get_frame_error_count(const GetFrameErrorCount *data, GetFrameErrorCount_Response *response) {
