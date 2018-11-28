@@ -27,7 +27,7 @@ int main(void) {
 	dmx_set_dmx_mode(&dmx, DMX_DMX_MODE_MASTER);
 
 	// Write DMX frame with 3 channels
-	dmx_write_frame(&dmx, (uint8_t[]){255, 128, 0});
+	dmx_write_frame(&dmx, (uint8_t[]){255, 128, 0}, 3);
 
 	printf("Press key to exit\n");
 	getchar();
