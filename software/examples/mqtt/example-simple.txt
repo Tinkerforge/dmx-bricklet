@@ -5,4 +5,4 @@ setup:
 	publish '{"dmx_mode": "master"}' to tinkerforge/request/dmx_bricklet/XYZ/set_dmx_mode 
 	
 	# Write DMX frame with 3 channels
-	publish '{"frame_length": [255,128,0]}' to tinkerforge/request/dmx_bricklet/XYZ/write_frame 
+	publish '{"frame": [255,128,0]}' to tinkerforge/request/dmx_bricklet/XYZ/write_frame 
