@@ -17,7 +17,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     dmx.set_dmx_mode(DMX_BRICKLET_DMX_MODE_MASTER);
 
     // Write DMX frame with 3 channels
-    dmx.write_frame(&[255, 128, 0]);
+    dmx.write_frame(&[255, 128, 0])?;
 
     println!("Press enter to exit.");
     let mut _input = String::new();
