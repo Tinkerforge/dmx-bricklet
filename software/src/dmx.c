@@ -32,6 +32,7 @@
 
 #include "communication.h"
 
+#define DMX_TIME_BETWEEN_SLOTS (0b1 << 8)
 #define DMX_READ_CAPTURE_BREAK_COUNT (88/8) // 8us per tick
 
 #define dmx_rx_irq_handler  IRQ_Hdlr_11
@@ -61,8 +62,7 @@ static uint8_t *dmx_payload_read_end1    = dmx.frame_read_in[1].payload + 512;
 
 void __attribute__((optimize("-O3"))) __attribute__ ((section (".ram_code"))) dmx_tx_irq_handler(void) {
 	while(!XMC_USIC_CH_TXFIFO_IsFull(DMX_USIC)) {
-		DMX_USIC->IN[0] = *dmx_payload_write_current++;
-
+		DMX_USIC->IN[0] = DMX_TIME_BETWEEN_SLOTS | *dmx_payload_write_current++;
 		if(dmx_payload_write_current >= dmx_payload_write_end) {
 			dmx.frame_number++;
 			dmx_payload_write_current = dmx_payload_write_start;
@@ -277,11 +277,16 @@ void dmx_init_hardware(DMX *dmx, const uint8_t mode) {
 	// USIC channel configuration
 	XMC_UART_CH_CONFIG_t config;
 	config.oversampling = DMX_OVERSAMPLING;
-	config.frame_length = 8;
 	config.baudrate     = DMX_BAUDRATE;
 	config.stop_bits    = 2;
-	config.data_bits    = 8;
 	config.parity_mode  = XMC_USIC_CH_PARITY_MODE_NONE;
+	if(mode == DMX_DMX_MODE_MASTER) {
+		config.frame_length = 9;
+		config.data_bits    = 9;
+	} else {
+		config.frame_length = 8;
+		config.data_bits    = 8;
+	}
 
 	XMC_UART_CH_Init(DMX_USIC, &config);
 
@@ -480,8 +485,8 @@ void dmx_tick(DMX *dmx) {
 
 				// TODO: Do we have to disable the IRQs here
 				//       to make sure that there is no TFP interrupt during our "fake MAB"?
-				DMX_USIC->IN[0] = 0; // MAB = 8us high = 2 stop bits at end
-				DMX_USIC->IN[0] = dmx->frame_write_out.start_code;
+				DMX_USIC->IN[0] = DMX_TIME_BETWEEN_SLOTS; // MAB = 8us high = 2 stop bits at end
+				DMX_USIC->IN[0] = DMX_TIME_BETWEEN_SLOTS | dmx->frame_write_out.start_code;
 				XMC_USIC_CH_TXFIFO_EnableEvent(DMX_USIC, XMC_USIC_CH_TXFIFO_EVENT_CONF_STANDARD);
 				XMC_USIC_CH_TriggerServiceRequest(DMX_USIC, DMX_SERVICE_REQUEST_TX);
 
