@@ -7,5 +7,5 @@
 2019-05-29: 2.0.2 (1da5ab5)
 - Fix SPITFP IRQ race condition with other higher prio IRQs (through bricklib2)
 
-2019-11-21: 2.3.3 (TBD)
+2019-11-21: 2.0.3 (a1258a2)
 - Add 4us wait-time between slots (some slaves can not handle 0us wait time)
