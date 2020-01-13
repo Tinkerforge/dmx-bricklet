@@ -21,5 +21,5 @@ if __name__ == "__main__":
     # Write DMX frame with 3 channels
     dmx.write_frame([255, 128, 0])
 
-    raw_input("Press key to exit\n") # Use input() in Python 3
+    input("Press key to exit\n") # Use raw_input() in Python 2
     ipcon.disconnect()
