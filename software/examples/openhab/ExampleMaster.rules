@@ -1,0 +1,11 @@
+// For this example configure your DMX Bricklet to Master Mode in Paper UI.
+
+rule "send"
+when
+    System started // Replace with trigger of your choice
+then
+    // Change XYZ to the UID of your DMX Bricklet
+    val dmxActions = getActions("tinkerforge", "tinkerforge:brickletdmx:XYZ")
+    // Write DMX frame with 3 channels
+    dmxActions.brickletDMXWriteFrame(newArrayList(255, 128, 0))
+end

@@ -1,0 +1,16 @@
+// For this example configure your DMX Bricklet to Slave Mode in Paper UI.
+
+import java.util.Arrays
+
+rule "receive"
+when
+    // Change XYZ to the UID of your DMX Bricklet
+    Channel "tinkerforge:brickletdmx:XYZ:BrickletDMXFrameAvailable" triggered
+then
+    // Change XYZ to the UID of your DMX Bricklet
+    val dmxActions = getActions("tinkerforge", "tinkerforge:brickletdmx:XYZ")
+    val frame = dmxActions.brickletDMXReadFrame()
+
+    logInfo("Example", "Frame Number:" + frame.get("frameNumber"))
+    logInfo("Example", "Frame:" + Arrays.toString(frame.get("frame") as int[]))
+end
