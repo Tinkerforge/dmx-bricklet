@@ -14,7 +14,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                                           // Don't use device before ipcon is connected.
 
     // Configure Bricklet as DMX master
-    dmx.set_dmx_mode(DMX_BRICKLET_DMX_MODE_MASTER);
+    dmx.set_dmx_mode(DMX_BRICKLET_DMX_MODE_MASTER).recv()?;
 
     // Write DMX frame with 3 channels
     dmx.write_frame(&[255, 128, 0])?;
