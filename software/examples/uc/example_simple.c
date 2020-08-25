@@ -1,14 +1,9 @@
-
-
 #include "bindings/hal_common.h"
 #include "bindings/bricklet_dmx.h"
 
 #define UID "XYZ" // Change XYZ to the UID of your DMX Bricklet
 
 void check(int rc, const char* msg);
-
-
-
 
 TF_DMX dmx;
 
