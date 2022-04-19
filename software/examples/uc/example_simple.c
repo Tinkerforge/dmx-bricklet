@@ -9,13 +9,13 @@
 
 void check(int rc, const char* msg);
 
-void example_setup(TF_HalContext *hal);
-void example_loop(TF_HalContext *hal);
+void example_setup(TF_HAL *hal);
+void example_loop(TF_HAL *hal);
 
 
 static TF_DMX dmx;
 
-void example_setup(TF_HalContext *hal) {
+void example_setup(TF_HAL *hal) {
 	// Create device object
 	check(tf_dmx_create(&dmx, UID, hal), "create device object");
 
@@ -27,7 +27,7 @@ void example_setup(TF_HalContext *hal) {
 	check(tf_dmx_write_frame(&dmx, frame, 3), "call write_frame");
 }
 
-void example_loop(TF_HalContext *hal) {
+void example_loop(TF_HAL *hal) {
 	// Poll for callbacks
 	tf_hal_callback_tick(hal, 0);
 }
